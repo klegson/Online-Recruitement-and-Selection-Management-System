@@ -120,10 +120,6 @@
                                         <span>Shape the future of education</span>
                                     </div>
                                     <div class="flex items-center">
-                                        <i class="fas fa-users text-green-400 mr-3"></i>
-                                        <span>Join 50,000+ educators</span>
-                                    </div>
-                                    <div class="flex items-center">
                                         <i class="fas fa-chart-line text-green-400 mr-3"></i>
                                         <span>Career growth opportunities</span>
                                     </div>
@@ -215,20 +211,6 @@
                                     class="w-full primary-bg text-white py-3 rounded-lg primary-hover transition-all font-semibold transform hover:scale-105 shadow-md">
                                 SIGN IN
                             </button>
-
-                            <!-- Social Login -->
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button" 
-                                        class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                                    <i class="fab fa-google text-red-500 mr-2"></i>
-                                    <span class="text-sm font-medium">Google</span>
-                                </button>
-                                <button type="button" 
-                                        class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                                    <i class="fab fa-facebook text-blue-600 mr-2"></i>
-                                    <span class="text-sm font-medium">Facebook</span>
-                                </button>
-                            </div>
                         </form>
 
                         <!-- Register Link -->
