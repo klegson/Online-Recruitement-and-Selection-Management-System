@@ -1,0 +1,11 @@
+# Prevent direct access to files
+<FilesMatch "\.(pdf|doc|docx|jpg|jpeg|png)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Allow access only through PHP scripts
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^ - [F]
+</IfModule>

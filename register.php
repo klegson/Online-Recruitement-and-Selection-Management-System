@@ -243,18 +243,6 @@
                                 </div>
                             </div>
 
-                            <!-- Terms and Conditions -->
-                            <div class="flex items-start">
-                                <input type="checkbox" 
-                                       id="terms" 
-                                       name="terms" 
-                                       required
-                                       class="w-4 h-4 text-primary-color border-gray-300 rounded focus:ring-primary-color mt-1">
-                                <label for="terms" class="ml-2 text-sm text-gray-600">
-                                    I agree to the <a href="#" class="primary-color hover:text-light-blue font-medium">Terms</a> 
-                                    and <a href="#" class="primary-color hover:text-light-blue font-medium">Privacy Policy</a>
-                                </label>
-                            </div>
 
                             <!-- Register Button -->
                             <button type="submit" 
@@ -262,19 +250,6 @@
                                 CREATE ACCOUNT
                             </button>
 
-                            <!-- Social Register -->
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button" 
-                                        class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                                    <i class="fab fa-google text-red-500 mr-2"></i>
-                                    <span class="text-sm font-medium">Google</span>
-                                </button>
-                                <button type="button" 
-                                        class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                                    <i class="fab fa-facebook text-blue-600 mr-2"></i>
-                                    <span class="text-sm font-medium">Facebook</span>
-                                </button>
-                            </div>
                         </form>
 
                         <!-- Login Link -->

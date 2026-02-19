@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!$user) {
         $_SESSION['error'] = "No account found with that email address.";
         header("Location: ../login.php");
-        exit();
+        exit(); 
     }
 
     if (!password_verify($password, $user['password'])) {
@@ -24,9 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $_SESSION['user_id'] = $user['userId'];
     $_SESSION['user_role'] = $user['userRole'];
+    $_SESSION['firstName'] = $user['firstName'];
+    $_SESSION['lastName'] = $user['lastName'];
 
     if ($user['userRole'] === 'Admin') {
-        header("Location: ../admin/admin_dashboard.php");
+        header("Location: ../Admin/admin_dashboard.php");
     } elseif ($user['userRole'] === 'HR_Staff') {
         header("Location: ../HR_staff/hr_dashboard.php");
     } elseif ($user['userRole'] === 'Applicant') {

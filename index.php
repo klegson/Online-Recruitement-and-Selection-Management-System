@@ -1,3 +1,15 @@
+<?php
+session_start();
+require_once 'config/db.php';
+
+// Fetch all open jobs from database
+$stmt = $pdo->query("
+    SELECT * FROM jobs 
+    WHERE jobStatus = 'Open' AND deadline >= CURDATE() 
+    ORDER BY createdAt DESC
+");
+$jobs = $stmt->fetchAll();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -161,80 +173,56 @@
                 <div class="flex flex-col md:flex-row gap-4">
                     <div class="flex-1 relative">
                         <input type="text" 
+                               id="searchInput"
                                placeholder="Search positions, divisions..." 
                                class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-06508c">
                         <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
                     </div>
-                    <button class="primary-bg text-white px-6 py-3 rounded-lg primary-hover transition-colors font-semibold">
+                    <select id="departmentFilter" class="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-06508c">
+                        <option value="">All Departments</option>
+                        <option value="Administrative Division">Administrative Division</option>
+                        <option value="Curriculum and Learning Management Division">Curriculum and Learning Management Division</option>
+                        <option value="Finance Division">Finance Division</option>
+                    </select>
+                    <button onclick="filterJobs()" class="primary-bg text-white px-6 py-3 rounded-lg primary-hover transition-colors font-semibold">
                         <i class="fas fa-filter mr-2"></i>Filter
                     </button>
                 </div>
             </div>
             
             <!-- Job Grid -->
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Job 1 -->
-                <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow p-6">
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Administrative Officer I</h3>
-                    <div class="flex items-center text-gray-600 mb-3">
-                        <i class="fas fa-map-marker-alt mr-2 primary-color"></i>
-                        <span>Division of Albay</span>
-                    </div>
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="light-blue primary-color px-3 py-1 rounded-full text-sm font-semibold">
-                            SG-11
-                        </span>
-                        <div class="flex items-center text-gray-500 text-sm">
-                            <i class="fas fa-clock mr-1"></i>
-                            <span>Deadline: 2025-03-15</span>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="jobGrid">
+                <?php if (!empty($jobs)): ?>
+                    <?php foreach ($jobs as $job): ?>
+                    <div class="job-card bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow p-6" 
+                         data-position="<?= htmlspecialchars(strtolower($job['position'])) ?>" 
+                         data-department="<?= htmlspecialchars(strtolower($job['department'])) ?>">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2"><?= htmlspecialchars($job['position']) ?></h3>
+                        <div class="flex items-center text-gray-600 mb-3">
+                            <i class="fas fa-map-marker-alt mr-2 primary-color"></i>
+                            <span><?= htmlspecialchars($job['department']) ?></span>
                         </div>
-                    </div>
-                    <button class="w-full primary-bg text-white py-2 rounded-lg primary-hover transition-colors font-semibold">
-                        View & Apply
-                    </button>
-                </div>
-
-                <!-- Job 2 -->
-                <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow p-6">
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Administrative Officer II</h3>
-                    <div class="flex items-center text-gray-600 mb-3">
-                        <i class="fas fa-map-marker-alt mr-2 primary-color"></i>
-                        <span>Division of Albay</span>
-                    </div>
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="light-blue primary-color px-3 py-1 rounded-full text-sm font-semibold">
-                            SG-11
-                        </span>
-                        <div class="flex items-center text-gray-500 text-sm">
-                            <i class="fas fa-clock mr-1"></i>
-                            <span>Deadline: 2025-03-20</span>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="light-blue primary-color px-3 py-1 rounded-full text-sm font-semibold">
+                                <?= htmlspecialchars($job['salaryGrade']) ?>
+                            </span>
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <i class="fas fa-clock mr-1"></i>
+                                <span>Deadline: <?= date('M d, Y', strtotime($job['deadline'])) ?></span>
+                            </div>
                         </div>
+                        <button onclick="showJobDetails(<?= $job['jobId'] ?>)" class="w-full primary-bg text-white py-2 rounded-lg primary-hover transition-colors font-semibold">
+                            View & Apply
+                        </button>
                     </div>
-                    <button class="w-full primary-bg text-white py-2 rounded-lg primary-hover transition-colors font-semibold">
-                        View & Apply
-                    </button>
-                </div>
-
-                <!-- Job 3 -->
-                <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow p-6">
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Administrative Officer III</h3>
-                    <div class="flex items-center text-gray-600 mb-3">
-                        <i class="fas fa-map-marker-alt mr-2 primary-color"></i>
-                        <span>Division of Camarines Sur</span>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="col-span-full text-center py-12">
+                        <i class="fas fa-briefcase text-gray-300 text-5xl mb-4"></i>
+                        <p class="text-gray-500 text-lg">No job vacancies available at the moment</p>
+                        <p class="text-gray-400 text-sm mt-2">Please check back later for new opportunities</p>
                     </div>
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="light-blue primary-color px-3 py-1 rounded-full text-sm font-semibold">
-                            SG-12
-                        </span>
-                        <div class="flex items-center text-gray-500 text-sm">
-                            <i class="fas fa-clock mr-1"></i>
-                            <span>Deadline: 2025-03-25</span>
-                        </div>
-                    </div>
-                    <button class="w-full primary-bg text-white py-2 rounded-lg primary-hover transition-colors font-semibold">
-                        View & Apply
-                    </button>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -350,38 +338,214 @@
         </div>
     </footer>
 
+    <!-- Job Details Modal -->
+    <div id="jobModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+                <div class="flex justify-between items-start">
+                    <h3 id="modalJobTitle" class="text-2xl font-bold text-gray-800"></h3>
+                    <button onclick="closeJobModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Department</p>
+                        <p id="modalDepartment" class="font-medium text-gray-800"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Salary Grade</p>
+                        <p id="modalSalaryGrade" class="font-medium text-gray-800"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Monthly Salary</p>
+                        <p id="modalSalary" class="font-medium text-gray-800"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Application Deadline</p>
+                        <p id="modalDeadline" class="font-medium text-gray-800"></p>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <p class="text-sm text-gray-500 mb-2">Job Description</p>
+                    <p id="modalDescription" class="text-gray-700"></p>
+                </div>
+                
+                <div class="mb-6">
+                    <p class="text-sm text-gray-500 mb-2">Required Documents</p>
+                    <div id="modalRequirements" class="space-y-2"></div>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button onclick="applyForJob()" class="flex-1 primary-bg text-white py-3 rounded-lg primary-hover transition-colors font-semibold">
+                        <i class="fas fa-paper-plane mr-2"></i>Apply Now
+                    </button>
+                    <button onclick="closeJobModal()" class="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition-colors font-semibold">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Mobile menu toggle
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobileMenu');
-            menu.classList.toggle('hidden');
-        }
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu toggle
+            function toggleMobileMenu() {
+                const menu = document.getElementById('mobileMenu');
+                menu.classList.toggle('hidden');
+            }
 
-        // Smooth scroll to jobs section
-        function scrollToJobs() {
-            const jobsSection = document.getElementById('jobs');
-            jobsSection.scrollIntoView({ behavior: 'smooth' });
-        }
+            // Smooth scroll to jobs section
+            function scrollToJobs() {
+                const jobsSection = document.getElementById('jobs');
+                if (jobsSection) {
+                    jobsSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
 
-        // Smooth scroll for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
+            // Smooth scroll for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+
+            // Toggle FAQ answers
+            function toggleFAQ(element) {
+                const answer = element.nextElementSibling;
+                const chevron = element.querySelector('i');
+                
+                answer.classList.toggle('hidden');
+                chevron.classList.toggle('rotate-180');
+            }
+
+            // Job details data (from PHP)
+            const jobsData = <?= json_encode($jobs) ?>;
+            let currentJobId = null;
+
+            // Show job details modal
+            function showJobDetails(jobId) {
+                const job = jobsData.find(j => j.jobId === jobId);
+                if (!job) return;
+
+                currentJobId = jobId;
+                
+                document.getElementById('modalJobTitle').textContent = job.position;
+                document.getElementById('modalDepartment').textContent = job.department;
+                document.getElementById('modalSalaryGrade').textContent = job.salaryGrade;
+                document.getElementById('modalSalary').textContent = '₱' + parseFloat(job.monthlySalary).toLocaleString();
+                document.getElementById('modalDeadline').textContent = new Date(job.deadline).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                document.getElementById('modalDescription').textContent = job.description || 'No description available.';
+                
+                // Show requirements (if available)
+                const requirementsDiv = document.getElementById('modalRequirements');
+                if (job.requirements) {
+                    requirementsDiv.innerHTML = job.requirements.split('\n').map(req => 
+                        `<div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                            <span class="text-gray-700">${req}</span>
+                        </div>`
+                    ).join('');
+                } else {
+                    requirementsDiv.innerHTML = '<p class="text-gray-500">No specific requirements listed.</p>';
+                }
+                
+                document.getElementById('jobModal').classList.remove('hidden');
+            }
+
+            // Close job modal
+            function closeJobModal() {
+                document.getElementById('jobModal').classList.add('hidden');
+                currentJobId = null;
+            }
+
+            // Apply for job
+            function applyForJob() {
+                <?php if (isset($_SESSION['user_id']) && $_SESSION['user_role'] === 'Applicant'): ?>
+                    window.location.href = `Applicants/apply_job.php?id=${currentJobId}`;
+                <?php elseif (isset($_SESSION['user_id'])): ?>
+                    alert('Only applicants can apply for jobs. Please log in as an applicant account.');
+                <?php else: ?>
+                    alert('Please log in to apply for this position.');
+                    window.location.href = 'login.php';
+                <?php endif; ?>
+            }
+
+            // Filter jobs
+            function filterJobs() {
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
+                const jobCards = document.querySelectorAll('.job-card');
+
+                jobCards.forEach(card => {
+                    const position = card.dataset.position;
+                    const department = card.dataset.department;
+
+                    const matchesSearch = !searchTerm || 
+                        position.includes(searchTerm) || 
+                        department.includes(searchTerm);
+                    
+                    const matchesDepartment = !departmentFilter || 
+                        department.includes(departmentFilter);
+
+                    if (matchesSearch && matchesDepartment) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
+            // Add event listeners for search and filter
+            const searchInput = document.getElementById('searchInput');
+            const departmentFilter = document.getElementById('departmentFilter');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', filterJobs);
+            }
+            
+            if (departmentFilter) {
+                departmentFilter.addEventListener('change', filterJobs);
+            }
+
+            // Close modal on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeJobModal();
                 }
             });
-        });
 
-        // Toggle FAQ answers
-        function toggleFAQ(element) {
-            const answer = element.nextElementSibling;
-            const chevron = element.querySelector('i');
-            
-            answer.classList.toggle('hidden');
-            chevron.classList.toggle('rotate-180');
-        }
+            // Close modal on background click
+            const jobModal = document.getElementById('jobModal');
+            if (jobModal) {
+                jobModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeJobModal();
+                    }
+                });
+            }
+
+            // Make functions globally accessible
+            window.toggleMobileMenu = toggleMobileMenu;
+            window.scrollToJobs = scrollToJobs;
+            window.toggleFAQ = toggleFAQ;
+            window.showJobDetails = showJobDetails;
+            window.closeJobModal = closeJobModal;
+            window.applyForJob = applyForJob;
+            window.filterJobs = filterJobs;
+        });
     </script>
-</body>
-</html>
