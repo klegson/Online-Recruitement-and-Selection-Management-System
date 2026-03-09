@@ -81,42 +81,6 @@ $stmt = $pdo->prepare("
 $stmt->execute();
 $recommendedJobs = $stmt->fetchAll();
 
-// Handle filtering parameters
-$search = $_GET['search'] ?? '';
-$minSalary = $_GET['minSalary'] ?? 0;
-$maxSalary = $_GET['maxSalary'] ?? 200000;
-$departments = $_GET['departments'] ?? '';
-
-// Build WHERE conditions for filtering
-$whereConditions = ["j.jobStatus = 'Open'", "j.deadline >= CURDATE()"];
-$params = [];
-
-// Add search condition
-if (!empty($search)) {
-    $whereConditions[] = "(j.position LIKE ? OR j.department LIKE ? OR j.description LIKE ?)";
-    $searchParam = "%$search%";
-    $params[] = $searchParam;
-    $params[] = $searchParam;
-    $params[] = $searchParam;
-}
-
-// Add salary range condition
-if ($minSalary > 0 || $maxSalary < 200000) {
-    $whereConditions[] = "j.minSalary >= ? AND j.maxSalary <= ?";
-    $params[] = $minSalary;
-    $params[] = $maxSalary;
-}
-
-// Add department condition
-if (!empty($departments)) {
-    $deptArray = explode(',', $departments);
-    $deptPlaceholders = str_repeat('?,', count($deptArray) - 1) . '?';
-    $whereConditions[] = "j.department IN ($deptPlaceholders)";
-    $params = array_merge($params, $deptArray);
-}
-
-$whereClause = implode(' AND ', $whereConditions);
-
 // Fetch newest jobs (latest 3 for horizontal section with pagination)
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * 3;
@@ -125,22 +89,22 @@ $stmt = $pdo->prepare("
     SELECT j.*, COUNT(a.applicationId) as applicantCount, TIMESTAMPDIFF(SECOND, j.postedAt, NOW()) as secondsSincePosted 
     FROM jobs j 
     LEFT JOIN applications a ON j.jobId = a.jobId 
-    WHERE $whereClause
+    WHERE j.jobStatus = 'Open' AND j.deadline >= CURDATE() 
     GROUP BY j.jobId 
     ORDER BY j.postedAt DESC 
     LIMIT 3 OFFSET $offset
 ");
-$stmt->execute($params);
+$stmt->execute();
 $newestJobs = $stmt->fetchAll();
 
 // Get total newest jobs count for pagination
-$stmt = $pdo->prepare("SELECT COUNT(*) as total FROM jobs j WHERE $whereClause");
-$stmt->execute($params);
+$stmt = $pdo->prepare("SELECT COUNT(*) as total FROM jobs WHERE jobStatus = 'Open' AND deadline >= CURDATE()");
+$stmt->execute();
 $totalNewestJobs = $stmt->fetch()['total'];
 $totalPages = ceil($totalNewestJobs / 3);
 
 // Get unique departments for filter
-$allDepartments = $pdo->query("SELECT DISTINCT department FROM jobs WHERE jobStatus = 'Open' ORDER BY department")->fetchAll();
+$departments = $pdo->query("SELECT DISTINCT department FROM jobs WHERE jobStatus = 'Open' ORDER BY department")->fetchAll();
 
 include('../includes/header.php');
 ?>
@@ -180,45 +144,12 @@ include('../includes/header.php');
                     <!-- Salary Filter -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Salary Range</label>
-                        <div class="space-y-4">
-                            <!-- Min Salary -->
-                            <div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-xs text-gray-600">Minimum</span>
-                                    <span class="text-xs font-medium text-blue-600">₱<span id="minSalaryValue">0</span></span>
-                                </div>
-                                <input type="range" id="minSalary" min="0" max="200000" value="0" step="5000"
-                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider">
-                            </div>
-                            
-                            <!-- Max Salary -->
-                            <div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-xs text-gray-600">Maximum</span>
-                                    <span class="text-xs font-medium text-blue-600">₱<span id="maxSalaryValue">200000</span></span>
-                                </div>
-                                <input type="range" id="maxSalary" min="0" max="200000" value="200000" step="5000"
-                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider">
-                            </div>
-                            
-                            <!-- Quick Select Buttons -->
-                            <div class="grid grid-cols-2 gap-2">
-                                <button onclick="setSalaryRange(0, 30000)" 
-                                        class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors">
-                                    Up to 30k
-                                </button>
-                                <button onclick="setSalaryRange(30000, 60000)" 
-                                        class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors">
-                                    30k - 60k
-                                </button>
-                                <button onclick="setSalaryRange(60000, 100000)" 
-                                        class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors">
-                                    60k - 100k
-                                </button>
-                                <button onclick="setSalaryRange(100000, 200000)" 
-                                        class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors">
-                                    100k+
-                                </button>
+                        <div class="space-y-2">
+                            <input type="range" min="0" max="100000" value="50000" 
+                                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>₱0</span>
+                                <span>₱100,000</span>
                             </div>
                         </div>
                     </div>
@@ -228,7 +159,7 @@ include('../includes/header.php');
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-3">Department</label>
                         <div class="space-y-2 max-h-48 overflow-y-auto">
-                            <?php foreach ($allDepartments as $dept): ?>
+                            <?php foreach ($departments as $dept): ?>
                                 <label class="flex items-center">
                                     <input type="checkbox" class="mr-2 text-blue-600 rounded focus:ring-blue-500">
                                     <span class="text-sm text-gray-700"><?= htmlspecialchars($dept['department']) ?></span>
@@ -246,7 +177,7 @@ include('../includes/header.php');
                         </select>
                     </div>
                     
-                    <button onclick="applyFilters()" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
                         Apply Filters
                     </button>
                 </div>
@@ -456,102 +387,6 @@ document.getElementById('sortFilter').addEventListener('change', function() {
     const currentUrl = new URL(window.location);
     currentUrl.searchParams.set('sort', sortValue);
     window.location.href = currentUrl.toString();
-});
-
-// Salary Range Functions
-const minSalarySlider = document.getElementById('minSalary');
-const maxSalarySlider = document.getElementById('maxSalary');
-const minSalaryValue = document.getElementById('minSalaryValue');
-const maxSalaryValue = document.getElementById('maxSalaryValue');
-
-// Update salary display values
-minSalarySlider.addEventListener('input', function() {
-    const minValue = parseInt(this.value);
-    const maxValue = parseInt(maxSalarySlider.value);
-    
-    // Ensure min doesn't exceed max
-    if (minValue > maxValue) {
-        this.value = maxValue;
-        minSalaryValue.textContent = maxValue;
-    } else {
-        minSalaryValue.textContent = minValue.toLocaleString();
-    }
-});
-
-maxSalarySlider.addEventListener('input', function() {
-    const minValue = parseInt(minSalarySlider.value);
-    const maxValue = parseInt(this.value);
-    
-    // Ensure max doesn't go below min
-    if (maxValue < minValue) {
-        this.value = minValue;
-        maxSalaryValue.textContent = minValue;
-    } else {
-        maxSalaryValue.textContent = maxValue.toLocaleString();
-    }
-});
-
-// Quick select salary range
-function setSalaryRange(min, max) {
-    minSalarySlider.value = min;
-    maxSalarySlider.value = max;
-    minSalaryValue.textContent = min.toLocaleString();
-    maxSalaryValue.textContent = max.toLocaleString();
-}
-
-// Apply filters function
-function applyFilters() {
-    const currentUrl = new URL(window.location);
-    
-    // Get salary range values
-    const minSalary = minSalarySlider.value;
-    const maxSalary = maxSalarySlider.value;
-    
-    // Get search value
-    const searchValue = document.querySelector('input[placeholder="Search jobs..."]').value;
-    
-    // Get selected departments
-    const selectedDepartments = [];
-    document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-        selectedDepartments.push(checkbox.nextElementSibling.textContent.trim());
-    });
-    
-    // Set URL parameters
-    if (minSalary !== '0') currentUrl.searchParams.set('minSalary', minSalary);
-    if (maxSalary !== '200000') currentUrl.searchParams.set('maxSalary', maxSalary);
-    if (searchValue) currentUrl.searchParams.set('search', searchValue);
-    if (selectedDepartments.length > 0) currentUrl.searchParams.set('departments', selectedDepartments.join(','));
-    
-    // Reload page with filters
-    window.location.href = currentUrl.toString();
-}
-
-// Restore filter values on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Restore salary range
-    const minSalary = urlParams.get('minSalary') || '0';
-    const maxSalary = urlParams.get('maxSalary') || '200000';
-    setSalaryRange(parseInt(minSalary), parseInt(maxSalary));
-    
-    // Restore search
-    const search = urlParams.get('search');
-    if (search) {
-        document.querySelector('input[placeholder="Search jobs..."]').value = search;
-    }
-    
-    // Restore departments
-    const departments = urlParams.get('departments');
-    if (departments) {
-        const deptArray = departments.split(',');
-        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            const deptName = checkbox.nextElementSibling.textContent.trim();
-            if (deptArray.includes(deptName)) {
-                checkbox.checked = true;
-            }
-        });
-    }
 });
 
 let currentPage = <?= $page ?>;

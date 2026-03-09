@@ -13,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $pdo->beginTransaction();
         
         // Insert job
-        $sql = "INSERT INTO jobs (position, plantillaItemNo, description, department, salaryGrade, monthlySalary, deadline) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO jobs (position, plantillaItemNo, description, department, salaryGrade, monthlySalary, deadline, postedAt, jobStatus) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 'Open')";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([

@@ -37,10 +37,11 @@ $whereClause = "WHERE " . implode(" AND ", $whereConditions);
 // Fetch jobs
 $stmt = $pdo->prepare("
     SELECT j.*, 
-           (SELECT COUNT(*) FROM applications a WHERE a.jobId = j.jobId) as applicationCount
+           (SELECT COUNT(*) FROM applications a WHERE a.jobId = j.jobId) as applicationCount,
+           DATEDIFF(CURDATE(), j.postedAt) as daysSincePosted
     FROM jobs j 
     $whereClause
-    ORDER BY j.createdAt DESC
+    ORDER BY j.postedAt DESC
 ");
 $stmt->execute($params);
 $jobs = $stmt->fetchAll();
@@ -159,6 +160,15 @@ include('../includes/header.php');
                                             <i class="fas fa-calendar-check mr-1"></i>
                                             Deadline: <?= date('M d, Y', strtotime($job['deadline'])) ?>
                                         </span>
+                                        <span class="text-gray-600">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            Posted: <?= date('M d, Y', strtotime($job['postedAt'])) ?>
+                                        </span>
+                                        <?php if ($job['daysSincePosted'] <= 7): ?>
+                                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                                <i class="fas fa-sparkles mr-1"></i>NEW
+                                            </span>
+                                        <?php endif; ?>
                                         <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
                                             <?= htmlspecialchars($job['jobStatus']) ?>
                                         </span>

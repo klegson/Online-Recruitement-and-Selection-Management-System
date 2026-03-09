@@ -19,7 +19,12 @@ if (isset($_GET['id'])) {
         // Toggle status
         $newStatus = ($job['jobStatus'] === 'Open') ? 'Closed' : 'Open';
         
-        $stmt = $pdo->prepare("UPDATE jobs SET jobStatus = ? WHERE jobId = ?");
+        // If reopening, update postedAt to current timestamp
+        if ($newStatus === 'Open') {
+            $stmt = $pdo->prepare("UPDATE jobs SET jobStatus = ?, postedAt = CURRENT_TIMESTAMP WHERE jobId = ?");
+        } else {
+            $stmt = $pdo->prepare("UPDATE jobs SET jobStatus = ? WHERE jobId = ?");
+        }
         $stmt->execute([$newStatus, $jobId]);
     }
 }
