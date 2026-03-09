@@ -122,22 +122,110 @@ include('../includes/header.php');
 
 <div class="max-w-4xl mx-auto">
     <div class="bg-white rounded-xl shadow-sm p-8 my-6">
-        <!-- Job Details Header -->
+        <!-- Comprehensive Job Details -->
         <div class="mb-8 pb-6 border-b">
-            <div class="flex justify-between items-start">
+
+            <div class="flex justify-between items-start mb-6">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-800 mb-2"><?= htmlspecialchars($job['position']) ?></h1>
-                    <p class="text-gray-600"><?= htmlspecialchars($job['department']) ?></p>
-                    <div class="flex items-center mt-3 space-x-4 text-sm text-gray-500">
-                        <span><i class="fas fa-layer-group mr-1"></i><?= htmlspecialchars($job['salaryGrade']) ?></span>
-                        <span><i class="fas fa-peso-sign mr-1"></i><?= number_format($job['monthlySalary'], 2) ?></span>
-                        <span><i class="fas fa-calendar-alt mr-1"></i>Deadline: <?= date('M d, Y', strtotime($job['deadline'])) ?></span>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2"><?= htmlspecialchars($job['position']) ?></h1>
+                    <p class="text-lg text-gray-600 mb-3"><?= htmlspecialchars($job['department']) ?></p>
+                    <div class="flex flex-wrap items-center gap-4 text-sm">
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                            <?= htmlspecialchars($job['employmentType'] ?? 'Full-time') ?>
+                        </span>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
+                            <?= htmlspecialchars($job['jobStatus']) ?>
+                        </span>
                     </div>
                 </div>
-                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                    <?= htmlspecialchars($job['jobStatus']) ?>
-                </span>
+                <div class="text-right">
+                    <div class="text-2xl font-bold text-blue-600">₱<?= number_format($job['monthlySalary'], 2) ?></div>
+                    <div class="text-sm text-gray-500"><?= htmlspecialchars($job['salaryGrade']) ?></div>
+                    <div class="text-xs text-gray-400 mt-1">per month</div>
+                </div>
             </div>
+
+            <!-- Job Overview Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-briefcase text-gray-400 mr-2"></i>
+                        <span class="text-sm font-medium text-gray-700">Job Type</span>
+                    </div>
+                    <div class="text-lg font-semibold text-gray-800"><?= htmlspecialchars($job['employmentType'] ?? 'Full-time') ?></div>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-clock text-gray-400 mr-2"></i>
+                        <span class="text-sm font-medium text-gray-700">Work Hours</span>
+                    </div>
+                    <div class="text-lg font-semibold text-gray-800"><?= htmlspecialchars($job['workHours'] ?? 'Full-time') ?></div>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
+                        <span class="text-sm font-medium text-gray-700">Deadline</span>
+                    </div>
+                    <div class="text-lg font-semibold text-red-600"><?= date('M d, Y', strtotime($job['deadline'])) ?></div>
+                    <div class="text-xs text-gray-500"><?= date('F j, Y', strtotime($job['postedAt'])) ?> - Posted</div>
+                </div>
+            </div>
+            <!-- Job Description -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-file-alt text-gray-400 mr-2"></i>Job Description
+                </h3>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="prose max-w-none text-gray-700">
+                        <?= nl2br(htmlspecialchars($job['description'])) ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requirements -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-clipboard-check text-gray-400 mr-2"></i>Requirements & Qualifications
+                </h3>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="prose max-w-none text-gray-700">
+                        <?= nl2br(htmlspecialchars($job['requirements'] ?? 'Bachelor\'s degree relevant to the position')) ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <?php if (!empty($job['responsibilities']) || !empty($job['skillsRequired'])): ?>
+            <div class="grid md:grid-cols-2 gap-6">
+                <?php if (!empty($job['responsibilities'])): ?>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <i class="fas fa-tasks text-gray-400 mr-2"></i>Key Responsibilities
+                    </h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="prose max-w-none text-gray-700">
+                            <?= nl2br(htmlspecialchars($job['responsibilities'])) ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+                
+                <?php if (!empty($job['skillsRequired'])): ?>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <i class="fas fa-cogs text-gray-400 mr-2"></i>Skills Required
+                    </h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="prose max-w-none text-gray-700">
+                            <?= nl2br(htmlspecialchars($job['skillsRequired'])) ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Application Form -->
