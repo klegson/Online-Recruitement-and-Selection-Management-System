@@ -39,23 +39,6 @@ $userId = $_SESSION['user_id'];
 $sortOrder = $_GET['sort'] ?? 'newest';
 $orderClause = $sortOrder === 'oldest' ? 'ASC' : 'DESC';
 
-// Fetch user statistics
-$totalApplications = $pdo->prepare("SELECT COUNT(*) as count FROM applications WHERE userId = ?");
-$totalApplications->execute([$userId]);
-$totalApplications = $totalApplications->fetch()['count'];
-
-$pendingApplications = $pdo->prepare("SELECT COUNT(*) as count FROM applications WHERE userId = ? AND status = 'Pending'");
-$pendingApplications->execute([$userId]);
-$pendingApplications = $pendingApplications->fetch()['count'];
-
-$shortlistedApplications = $pdo->prepare("SELECT COUNT(*) as count FROM applications WHERE userId = ? AND status = 'Shortlisted'");
-$shortlistedApplications->execute([$userId]);
-$shortlistedApplications = $shortlistedApplications->fetch()['count'];
-
-$hiredApplications = $pdo->prepare("SELECT COUNT(*) as count FROM applications WHERE userId = ? AND status = 'Hired'");
-$hiredApplications->execute([$userId]);
-$hiredApplications = $hiredApplications->fetch()['count'];
-
 // Fetch recent applications
 $stmt = $pdo->prepare("
     SELECT a.*, j.position, j.department, j.salaryGrade, j.deadline 
@@ -162,18 +145,18 @@ include('../includes/header.php');
 
 <!-- Main Dashboard Container -->
 <div class="bg-gray-50 min-h-screen">
-    <div class="max-w-7xl mx-auto px-4 py-6">
-        <div class="grid grid-cols-12 gap-6">
+    <div class="max-w-[1400px] mx-auto px-6 py-8">
+        <div class="grid grid-cols-10 gap-6">
             
             <!-- Left Sidebar - Filters -->
-            <div class="col-span-3">
-                <div class="bg-white rounded-xl shadow-sm p-6 sticky top-6">
+            <div class="col-span-2 space-y-6">
+                <div class="bg-white rounded-xl shadow-sm p-6 sticky top-6 h-fit">
                     <h3 class="font-semibold text-gray-800 mb-6">Filters</h3>
                     
                     <!-- Search Bar -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                        <input type="text" placeholder="Search jobs..." 
+                        <input type="text" id="searchInput" placeholder="Search jobs..." 
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     
@@ -200,40 +183,6 @@ include('../includes/header.php');
                                 <input type="range" id="maxSalary" min="0" max="200000" value="200000" step="5000"
                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider">
                             </div>
-                            
-                            <!-- Quick Select Buttons -->
-                            <div class="grid grid-cols-2 gap-2">
-                                <button onclick="setSalaryRange(0, 30000)" 
-                                        class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors">
-                                    Up to 30k
-                                </button>
-                                <button onclick="setSalaryRange(30000, 60000)" 
-                                        class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors">
-                                    30k - 60k
-                                </button>
-                                <button onclick="setSalaryRange(60000, 100000)" 
-                                        class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors">
-                                    60k - 100k
-                                </button>
-                                <button onclick="setSalaryRange(100000, 200000)" 
-                                        class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors">
-                                    100k+
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    
-                    <!-- Department Filter -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-3">Department</label>
-                        <div class="space-y-2 max-h-48 overflow-y-auto">
-                            <?php foreach ($allDepartments as $dept): ?>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 text-blue-600 rounded focus:ring-blue-500">
-                                    <span class="text-sm text-gray-700"><?= htmlspecialchars($dept['department']) ?></span>
-                                </label>
-                            <?php endforeach; ?>
                         </div>
                     </div>
                     
@@ -253,9 +202,9 @@ include('../includes/header.php');
             </div>
             
             <!-- Center Content - Job Listings -->
-            <div class="col-span-6">
+            <div class="col-span-6 space-y-6">
                 <!-- Newest Jobs Section -->
-                <div class="mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6 h-fit">
                     <div class="relative">
                         <h3 class="font-semibold text-gray-800 mb-4">Newest Jobs</h3>
                         
@@ -297,7 +246,7 @@ include('../includes/header.php');
                                                     </div>
                                                     <div class="flex items-center text-xs text-gray-600">
                                                         <i class="fas fa-users mr-1 text-gray-400"></i>
-                                                        <?= $job['applicantCount'] ?> applied
+                                                        <?= $job['applicantCount'] ?> applicant<?= $job['applicantCount'] != 1 ? 's' : '' ?>
                                                     </div>
                                                     <div class="text-xs text-gray-500">
                                                         <?= timeAgo($job['postedAt'], $job['secondsSincePosted']) ?>
@@ -319,12 +268,12 @@ include('../includes/header.php');
                 </div>
                 
                 <!-- Other Jobs Section -->
-                <div>
+                <div id="otherJobsSection">
                     <h3 class="font-semibold text-gray-800 mb-4">Other Jobs</h3>
                     <?php if (!empty($recommendedJobs)): ?>
                         <div class="space-y-4">
                             <?php foreach ($recommendedJobs as $job): ?>
-                                <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
+                                <div class="job-card bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow h-fit">
                                     <div class="flex items-start">
                                         <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
                                             <i class="fas fa-building text-gray-600"></i>
@@ -332,8 +281,8 @@ include('../includes/header.php');
                                         <div class="flex-1">
                                             <div class="flex items-start justify-between mb-2">
                                                 <div>
-                                                    <h4 class="font-semibold text-gray-800 text-lg"><?= htmlspecialchars($job['position']) ?></h4>
-                                                    <p class="text-sm text-gray-600"><?= htmlspecialchars($job['department']) ?></p>
+                                                    <h4 class="job-position font-semibold text-gray-800 text-lg"><?= htmlspecialchars($job['position']) ?></h4>
+                                                    <p class="job-department text-sm text-gray-600"><?= htmlspecialchars($job['department']) ?></p>
                                                 </div>
                                                 <div class="flex flex-col items-end space-y-1 ml-4">
                                                     <?php 
@@ -351,7 +300,7 @@ include('../includes/header.php');
                                                 <div class="flex items-center text-sm text-gray-600">
                                                     <i class="fas fa-money-bill-wave mr-2 text-gray-400"></i>
                                                     <div>
-                                                        <div class="font-medium text-gray-800"><?= htmlspecialchars($job['salaryGrade']) ?></div>
+                                                        <div class="salary-grade font-medium text-gray-800"><?= htmlspecialchars($job['salaryGrade']) ?></div>
                                                         <div class="text-xs text-gray-500">Salary Grade</div>
                                                     </div>
                                                 </div>
@@ -407,9 +356,9 @@ include('../includes/header.php');
             </div>
             
             <!-- Right Sidebar -->
-            <div class="col-span-3">
+            <div class="col-span-2 space-y-6">
                 <!-- User Profile Card -->
-                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="bg-white rounded-xl shadow-sm p-6 h-fit">
                     <div class="text-center">
                         <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <i class="fas fa-user text-blue-600 text-2xl"></i>
@@ -422,29 +371,33 @@ include('../includes/header.php');
                     </div>
                 </div>
                 
-                <!-- Quick Stats Card -->
-                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-                    <h3 class="font-semibold text-gray-800 mb-4">Quick Stats</h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Total Applications</span>
-                            <span class="font-semibold text-gray-800"><?= $totalApplications ?></span>
+                <!-- Recent Applications -->
+                <div class="bg-white rounded-xl shadow-sm p-6 h-fit">
+                    <h3 class="font-semibold text-gray-800 mb-4">Recent Applications</h3>
+                    <?php if (!empty($recentApplications)): ?>
+                        <div class="space-y-3">
+                            <?php foreach (array_slice($recentApplications, 0, 5) as $app): ?>
+                                <div class="border-l-4 border-blue-500 pl-3 py-2">
+                                    <h5 class="font-medium text-gray-800 text-sm"><?= htmlspecialchars($app['position']) ?></h5>
+                                    <p class="text-xs text-gray-600"><?= htmlspecialchars($app['department']) ?></p>
+                                    <div class="flex items-center justify-between mt-1">
+                                        <span class="text-xs text-gray-500"><?= timeAgo($app['appliedAt']) ?></span>
+                                        <span class="text-xs px-2 py-1 rounded-full bg-<?= $app['status'] === 'Pending' ? 'yellow' : ($app['status'] === 'Shortlisted' ? 'green' : 'blue') ?>-100 text-<?= $app['status'] === 'Pending' ? 'yellow' : ($app['status'] === 'Shortlisted' ? 'green' : 'blue') ?>-800">
+                                            <?= htmlspecialchars($app['status']) ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Pending</span>
-                            <span class="font-semibold text-yellow-600"><?= $pendingApplications ?></span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Shortlisted</span>
-                            <span class="font-semibold text-green-600"><?= $shortlistedApplications ?></span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Hired</span>
-                            <span class="font-semibold text-purple-600"><?= $hiredApplications ?></span>
-                        </div>
-                    </div>
+                        <?php if (count($recentApplications) > 5): ?>
+                            <a href="my_applications.php" class="block text-center text-sm text-blue-600 hover:text-blue-800 mt-4">
+                                View All Applications →
+                            </a>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <p class="text-sm text-gray-500 text-center">No applications yet</p>
+                    <?php endif; ?>
                 </div>
-                
             </div>
         </div>
     </div>
@@ -453,7 +406,7 @@ include('../includes/header.php');
 <script>
 document.getElementById('sortFilter').addEventListener('change', function() {
     const sortValue = this.value;
-    const currentUrl = new URL(window.location);
+    const currentUrl = new window.URL(window.location);
     currentUrl.searchParams.set('sort', sortValue);
     window.location.href = currentUrl.toString();
 });
@@ -472,7 +425,7 @@ minSalarySlider.addEventListener('input', function() {
     // Ensure min doesn't exceed max
     if (minValue > maxValue) {
         this.value = maxValue;
-        minSalaryValue.textContent = maxValue;
+        minSalaryValue.textContent = maxValue.toLocaleString();
     } else {
         minSalaryValue.textContent = minValue.toLocaleString();
     }
@@ -485,74 +438,38 @@ maxSalarySlider.addEventListener('input', function() {
     // Ensure max doesn't go below min
     if (maxValue < minValue) {
         this.value = minValue;
-        maxSalaryValue.textContent = minValue;
+        maxSalaryValue.textContent = minValue.toLocaleString();
     } else {
         maxSalaryValue.textContent = maxValue.toLocaleString();
     }
 });
 
-// Quick select salary range
-function setSalaryRange(min, max) {
-    minSalarySlider.value = min;
-    maxSalarySlider.value = max;
-    minSalaryValue.textContent = min.toLocaleString();
-    maxSalaryValue.textContent = max.toLocaleString();
-}
-
-// Apply filters function
+// Filter functionality
 function applyFilters() {
-    const currentUrl = new URL(window.location);
+    const search = document.getElementById('searchInput').value;
+    const minSalary = document.getElementById('minSalary').value;
+    const maxSalary = document.getElementById('maxSalary').value;
+    const sort = document.getElementById('sortFilter').value;
     
-    // Get salary range values
-    const minSalary = minSalarySlider.value;
-    const maxSalary = maxSalarySlider.value;
+    let url = '?';
+    const params = [];
     
-    // Get search value
-    const searchValue = document.querySelector('input[placeholder="Search jobs..."]').value;
+    if (search) params.push('search=' + encodeURIComponent(search));
+    if (minSalary !== '0') params.push('minSalary=' + minSalary);
+    if (maxSalary !== '200000') params.push('maxSalary=' + maxSalary);
+    if (sort !== 'newest') params.push('sort=' + sort);
     
-    // Get selected departments
-    const selectedDepartments = [];
-    document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-        selectedDepartments.push(checkbox.nextElementSibling.textContent.trim());
-    });
+    url += params.join('&');
     
-    // Set URL parameters
-    if (minSalary !== '0') currentUrl.searchParams.set('minSalary', minSalary);
-    if (maxSalary !== '200000') currentUrl.searchParams.set('maxSalary', maxSalary);
-    if (searchValue) currentUrl.searchParams.set('search', searchValue);
-    if (selectedDepartments.length > 0) currentUrl.searchParams.set('departments', selectedDepartments.join(','));
-    
-    // Reload page with filters
-    window.location.href = currentUrl.toString();
+    window.location.href = url || window.location.pathname;
 }
 
-// Restore filter values on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Restore salary range
-    const minSalary = urlParams.get('minSalary') || '0';
-    const maxSalary = urlParams.get('maxSalary') || '200000';
-    setSalaryRange(parseInt(minSalary), parseInt(maxSalary));
-    
-    // Restore search
-    const search = urlParams.get('search');
-    if (search) {
-        document.querySelector('input[placeholder="Search jobs..."]').value = search;
-    }
-    
-    // Restore departments
-    const departments = urlParams.get('departments');
-    if (departments) {
-        const deptArray = departments.split(',');
-        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            const deptName = checkbox.nextElementSibling.textContent.trim();
-            if (deptArray.includes(deptName)) {
-                checkbox.checked = true;
-            }
-        });
-    }
-});
+// Real-time search
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+// Salary filter change
+minSalarySlider.addEventListener('change', applyFilters);
+maxSalarySlider.addEventListener('change', applyFilters);
 
 let currentPage = <?= $page ?>;
 const totalPages = <?= $totalPages ?>;

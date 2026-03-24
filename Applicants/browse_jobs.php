@@ -46,9 +46,23 @@ $stmt = $pdo->prepare("
 $stmt->execute($params);
 $jobs = $stmt->fetchAll();
 
-// Get unique departments and positions for filters
-$departments = $pdo->query("SELECT DISTINCT department FROM jobs WHERE jobStatus = 'Open' ORDER BY department")->fetchAll();
-$positions = $pdo->query("SELECT DISTINCT position FROM jobs WHERE jobStatus = 'Open' ORDER BY position")->fetchAll();
+// Fetch all possible positions from ENUM column (same as HR create_job)
+$stmt = $pdo->query("SHOW COLUMNS FROM jobs WHERE Field = 'position'");
+$column = $stmt->fetch();
+$enumString = $column['Type'];
+
+// Extract ENUM values
+preg_match("/^enum\((.*)\)$/", $enumString, $matches);
+$positions = str_getcsv($matches[1], ',', "'", "\\");
+
+// Fetch all possible departments from ENUM column (same as HR create_job)
+$stmt = $pdo->query("SHOW COLUMNS FROM jobs WHERE Field = 'department'");
+$column = $stmt->fetch();
+$enumString = $column['Type'];
+
+// Extract ENUM values
+preg_match("/^enum\((.*)\)$/", $enumString, $matches);
+$departments = str_getcsv($matches[1], ',', "'", "\\");
 
 include('../includes/header.php');
 ?>
@@ -98,8 +112,8 @@ include('../includes/header.php');
                     <select name="department" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">All Departments</option>
                         <?php foreach ($departments as $dept): ?>
-                            <option value="<?= htmlspecialchars($dept['department']) ?>" <?= $department === $dept['department'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($dept['department']) ?>
+                            <option value="<?= htmlspecialchars($dept) ?>" <?= $department === $dept ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($dept) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -110,8 +124,8 @@ include('../includes/header.php');
                     <select name="position" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">All Positions</option>
                         <?php foreach ($positions as $pos): ?>
-                            <option value="<?= htmlspecialchars($pos['position']) ?>" <?= $position === $pos['position'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($pos['position']) ?>
+                            <option value="<?= htmlspecialchars($pos) ?>" <?= $position === $pos ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($pos) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

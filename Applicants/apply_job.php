@@ -31,10 +31,9 @@ $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM applications WHERE userId =
 $stmt->execute([$userId, $jobId]);
 $alreadyApplied = $stmt->fetch()['count'] > 0;
 
+$error = '';
 if ($alreadyApplied) {
-    $_SESSION['error'] = "You have already applied for this position";
-    header("Location: ../index.php");
-    exit();
+    $error = "You have already applied for this position";
 }
 
 // Fetch user details
@@ -114,7 +113,7 @@ include('../includes/header.php');
 ?>
 
 <!-- Success/Error Messages -->
-<?php if (isset($error)): ?>
+<?php if (isset($error) && !empty($error)): ?>
     <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
         <?= htmlspecialchars($error) ?>
     </div>
@@ -140,8 +139,8 @@ include('../includes/header.php');
                 </div>
                 <div class="text-right">
                     <div class="text-2xl font-bold text-blue-600">₱<?= number_format($job['monthlySalary'], 2) ?></div>
-                    <div class="text-sm text-gray-500"><?= htmlspecialchars($job['salaryGrade']) ?></div>
                     <div class="text-xs text-gray-400 mt-1">per month</div>
+                    <div class="text-sm text-gray-500"><?= htmlspecialchars($job['salaryGrade']) ?></div>
                 </div>
             </div>
 
@@ -184,18 +183,6 @@ include('../includes/header.php');
                 </div>
             </div>
 
-            <!-- Requirements -->
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                    <i class="fas fa-clipboard-check text-gray-400 mr-2"></i>Requirements & Qualifications
-                </h3>
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <div class="prose max-w-none text-gray-700">
-                        <?= nl2br(htmlspecialchars($job['requirements'] ?? 'Bachelor\'s degree relevant to the position')) ?>
-                    </div>
-                </div>
-            </div>
-
             <!-- Additional Information -->
             <?php if (!empty($job['responsibilities']) || !empty($job['skillsRequired'])): ?>
             <div class="grid md:grid-cols-2 gap-6">
@@ -229,6 +216,7 @@ include('../includes/header.php');
         </div>
 
         <!-- Application Form -->
+        <?php if (!$alreadyApplied): ?>
         <form method="POST" enctype="multipart/form-data" class="space-y-6">
             <h2 class="text-xl font-bold text-gray-800 mb-6">Application Information</h2>
             
@@ -316,13 +304,6 @@ include('../includes/header.php');
             </div>
             <?php endif; ?>
             
-            <!-- Job Description -->
-            <div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Job Description</h3>
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <p class="text-gray-700"><?= nl2br(htmlspecialchars($job['description'] ?? 'No description available.')) ?></p>
-                </div>
-            </div>
             
             <!-- Form Actions -->
             <div class="flex justify-end space-x-4 pt-6 border-t">
@@ -334,6 +315,17 @@ include('../includes/header.php');
                 </button>
             </div>
         </form>
+        <?php else: ?>
+            <!-- Already Applied Message -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                <i class="fas fa-exclamation-triangle text-yellow-600 text-3xl mb-4"></i>
+                <h3 class="text-lg font-semibold text-yellow-800 mb-2">Already Applied</h3>
+                <p class="text-yellow-700 mb-4"><?= htmlspecialchars($error) ?></p>
+                <a href="applicants_dashboard.php" class="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

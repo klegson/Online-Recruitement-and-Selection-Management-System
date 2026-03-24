@@ -11,6 +11,24 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'HR_Staff') {
 $stmt = $pdo->query("SELECT * FROM document_types ORDER BY name");
 $documentTypes = $stmt->fetchAll();
 
+// Fetch all possible positions from ENUM column
+$stmt = $pdo->query("SHOW COLUMNS FROM jobs WHERE Field = 'position'");
+$column = $stmt->fetch();
+$enumString = $column['Type'];
+
+// Extract ENUM values
+preg_match("/^enum\((.*)\)$/", $enumString, $matches);
+$positions = str_getcsv($matches[1], ',', "'", "\\");
+
+// Fetch all possible departments from ENUM column
+$stmt = $pdo->query("SHOW COLUMNS FROM jobs WHERE Field = 'department'");
+$column = $stmt->fetch();
+$enumString = $column['Type'];
+
+// Extract ENUM values
+preg_match("/^enum\((.*)\)$/", $enumString, $matches);
+$departments = str_getcsv($matches[1], ',', "'", "\\");
+
 include('../includes/header.php');
 ?>
 
@@ -30,31 +48,9 @@ include('../includes/header.php');
                     </label>
                     <select name="position" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Select Position</option>
-                        <option value="Accountant I">Accountant I</option>
-                        <option value="Accountant II">Accountant II</option>
-                        <option value="Accountant III">Accountant III</option>
-                        <option value="Accountant IV">Accountant IV</option>
-                        <option value="Accounting Analyst">Accounting Analyst</option>
-                        <option value="Accounting Clerk II">Accounting Clerk II</option>
-                        <option value="Administrative Assistant VI">Administrative Assistant VI</option>
-                        <option value="Administrative Aide I">Administrative Aide I</option>
-                        <option value="Administrative Aide II">Administrative Aide II</option>
-                        <option value="Administrative Aide III">Administrative Aide III</option>
-                        <option value="Administrative Aide IV">Administrative Aide IV</option>
-                        <option value="Administrative Aide V">Administrative Aide V</option>
-                        <option value="Administrative Aide VI">Administrative Aide VI</option>
-                        <option value="Administrative Assistant I">Administrative Assistant I</option>
-                        <option value="Administrative Assistant II">Administrative Assistant II</option>
-                        <option value="Administrative Assistant III">Administrative Assistant III</option>
-                        <option value="Administrative Assistant V">Administrative Assistant V</option>
-                        <option value="Administrative Officer I">Administrative Officer I</option>
-                        <option value="Administrative Officer II">Administrative Officer II</option>
-                        <option value="Administrative Officer III">Administrative Officer III</option>
-                        <option value="Administrative Officer IV">Administrative Officer IV</option>
-                        <option value="Administrative Officer V">Administrative Officer V</option>
-                        <option value="Agriculturist I">Agriculturist I</option>
-                        <option value="Agriculturist II">Agriculturist II</option>
-                        <option value="Aquacultural Technician II">Aquacultural Technician II</option>
+                        <?php foreach ($positions as $position): ?>
+                        <option value="<?= htmlspecialchars($position) ?>"><?= htmlspecialchars($position) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
@@ -64,9 +60,9 @@ include('../includes/header.php');
                     </label>
                     <select name="department" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Select Department</option>
-                        <option value="Administrative Division">Administrative Division</option>
-                        <option value="Curriculum and Learning Management Division">Curriculum and Learning Management Division</option>
-                        <option value="Finance Division">Finance Division</option>
+                        <?php foreach ($departments as $department): ?>
+                        <option value="<?= htmlspecialchars($department) ?>"><?= htmlspecialchars($department) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
             </div>
@@ -76,21 +72,21 @@ include('../includes/header.php');
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-id-badge mr-1"></i> Plantilla Item No.
                     </label>
-                    <input type="text" name="plantillaItemNo" placeholder="e.g., 001-2024" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" name="plantillaItemNo" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-chart-line mr-1"></i> Salary Grade
                     </label>
-                    <input type="text" name="salaryGrade" placeholder="e.g., SG-11" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" name="salaryGrade" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-peso-sign mr-1"></i> Monthly Salary
                     </label>
-                    <input type="number" step="0.01" name="monthlySalary" placeholder="0.00" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <input type="number" step="0.01" name="monthlySalary" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
 
@@ -105,16 +101,14 @@ include('../includes/header.php');
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                     <i class="fas fa-file-alt mr-1"></i> Job Description
                 </label>
-                <textarea name="description" rows="4" placeholder="Provide a detailed description of the job position, responsibilities, and qualifications..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                <textarea name="description" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
             </div>
 
             <!-- Document Requirements Section -->
             <div class="border-t pt-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">
                     <i class="fas fa-file-pdf mr-2"></i>Required Documents
-                </h3>
-                <p class="text-sm text-gray-600 mb-4">Select the documents that applicants must submit for this position</p>
-                
+                </h3>                
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     <?php foreach ($documentTypes as $docType): ?>
                     <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">

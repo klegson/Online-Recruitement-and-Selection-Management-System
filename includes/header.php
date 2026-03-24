@@ -71,6 +71,7 @@
                             <a href="../HR_staff/applications.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Applications</a>
                         <?php elseif ($_SESSION['user_role'] === 'Admin'): ?>
                             <a href="../Admin/admin_dashboard.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Dashboard</a>
+                            <a href="../Admin/manage_users.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Users</a>
                         <?php elseif ($_SESSION['user_role'] === 'Applicant'): ?>
                             <a href="../Applicants/applicants_dashboard.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Dashboard</a>
                             <a href="../Applicants/browse_jobs.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Browse Jobs</a>
@@ -117,6 +118,7 @@
                     <a href="../HR_staff/applications.php" class="block py-2 nav-link primary-color hover:text-light-blue">Applications</a>
                 <?php elseif ($_SESSION['user_role'] === 'Admin'): ?>
                     <a href="../Admin/admin_dashboard.php" class="block py-2 nav-link primary-color hover:text-light-blue">Dashboard</a>
+                    <a href="../Admin/manage_users.php" class="block py-2 nav-link primary-color hover:text-light-blue">Users</a>
                 <?php elseif ($_SESSION['user_role'] === 'Applicant'): ?>
                     <a href="../Applicants/applicants_dashboard.php" class="block py-2 nav-link primary-color hover:text-light-blue">Dashboard</a>
                     <a href="../Applicants/browse_jobs.php" class="block py-2 nav-link primary-color hover:text-light-blue">Browse Jobs</a>

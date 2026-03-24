@@ -1,3 +1,6 @@
+<?php 
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -151,10 +154,20 @@
                             <p class="text-gray-600">Access your DepEd recruitment account</p>
                         </div>
 
-                        <?php if(isset($_GET['error'])): ?>
+                        <?php if(isset($_SESSION['error'])): ?>
                             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
                                 <i class="fas fa-exclamation-circle mr-2"></i>
-                                Invalid email or password.
+                                <?php 
+                                echo $_SESSION['error'];
+                                unset($_SESSION['error']);
+                                ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if(isset($_GET['success']) && $_GET['success'] == 'account_created'): ?>
+                            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Account created successfully! Please login with your credentials.
                             </div>
                         <?php endif; ?>
 
