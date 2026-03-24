@@ -3,7 +3,9 @@ require_once '../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST'){
     $firstName = $_POST['firstName'];
+    $middleName = $_POST['middleName'];
     $lastName = $_POST['lastName'];
+    $extension = $_POST['extension'];
     $email = $_POST['email'];
     $password = $_POST['password'];
 
@@ -11,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
 
     $userRole = 'Applicant';
 
-    $sql = "INSERT INTO users (firstName, lastName, email, password, userRole) VALUES (:firstName, :lastName, :email, :password, :userRole)";
+    $sql = "INSERT INTO users (firstName, middleName, lastName, extension, email, password, userRole) VALUES (:firstName, :middleName, :lastName, :extension, :email, :password, :userRole)";
 
     $stmt = $pdo->prepare($sql);
 
@@ -19,7 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
 
         $stmt->execute([
             ':firstName' => $firstName,
+            ':middleName' => $middleName,
             ':lastName' => $lastName,
+            ':extension' => $extension,
             ':email' => $email,
             ':password' => $hash_password,
             ':userRole' => $userRole

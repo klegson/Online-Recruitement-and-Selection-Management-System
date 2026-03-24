@@ -155,6 +155,13 @@
                             <p class="text-gray-600">Create your DepEd recruitment account</p>
                         </div>
 
+                        <?php if(isset($_GET['error'])): ?>
+                            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                Account creation failed. Please try again or use a different email.
+                            </div>
+                        <?php endif; ?>
+
                         <!-- Register Form -->
                         <form action="actions/register_action.php" method="POST" class="space-y-4">
                             <!-- Name Fields -->
@@ -174,6 +181,22 @@
                                     </div>
                                 </div>
                                 <div>
+                                    <label for="middleName" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Middle Name
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" 
+                                               id="middleName" 
+                                               name="middleName" 
+                                               required
+                                               class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-06508c focus:border-transparent"
+                                               placeholder="Middle name">
+                                        <i class="fas fa-user absolute left-4 top-4 text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
                                     <label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">
                                         Last Name
                                     </label>
@@ -184,6 +207,19 @@
                                                required
                                                class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-06508c focus:border-transparent"
                                                placeholder="Last name">
+                                        <i class="fas fa-user absolute left-4 top-4 text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="extension" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Extension (Jr., Sr., III, etc.)
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" 
+                                               id="extension" 
+                                               name="extension" 
+                                               class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-06508c focus:border-transparent"
+                                               placeholder="Extension (optional)">
                                         <i class="fas fa-user absolute left-4 top-4 text-gray-400"></i>
                                     </div>
                                 </div>
