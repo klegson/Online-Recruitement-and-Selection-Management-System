@@ -313,7 +313,7 @@ include('../includes/header.php');
                     <textarea name="hrNotes" rows="4" placeholder="Add notes about this application..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><?= htmlspecialchars($application['hrNotes'] ?? '') ?></textarea>
                 </div>
 
-                <button type="submit" class="w-full primary-bg text-white py-2 rounded-lg hover:bg-blue-800 transition">
+                <button type="button" id="updateStatusBtn" class="w-full primary-bg text-white py-2 rounded-lg hover:bg-blue-800 transition">
                     <i class="fas fa-save mr-2"></i>Update Status
                 </button>
             </form>
@@ -336,4 +336,255 @@ include('../includes/header.php');
     </div>
 </div>
 
+<!-- Email Notification Modal -->
+<div id="emailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-semibold text-gray-800">
+                        <i class="fas fa-envelope mr-2"></i>Send Email Notification
+                    </h3>
+                    <button type="button" id="closeModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Applicant Info -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <h4 class="font-medium text-gray-800 mb-2">Applicant Information</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-500">Name:</span>
+                            <p class="font-medium" id="modalAppName"><?= htmlspecialchars($application['firstName'] . ' ' . $application['lastName']) ?></p>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Email:</span>
+                            <p class="font-medium" id="modalAppEmail"><?= htmlspecialchars($application['email']) ?></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Form -->
+                <form id="emailForm" class="space-y-4">
+                    <input type="hidden" id="modalApplicationId" value="<?= $applicationId ?>">
+                    <input type="hidden" id="modalStatus" value="">
+                    <input type="hidden" id="modalHrNotes" value="">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status Update</label>
+                        <div class="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                            <span id="modalStatusDisplay" class="font-medium text-blue-800"></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Subject</label>
+                        <input type="text" id="emailSubject" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" readonly>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Message</label>
+                        <textarea id="emailMessage" rows="8" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" id="cancelBtn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                            Cancel
+                        </button>
+                        <button type="submit" id="sendEmailBtn" class="flex-1 primary-bg text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            <span id="btnText">Confirm & Send</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php include('../includes/footer.php'); ?>
+
+<script>
+// Email Templates
+const emailTemplates = {
+    'Shortlisted': {
+        subject: 'Application Status Update - Shortlisted for Position',
+        message: `Dear {applicant_name},
+
+Good news! Your application for the position of {position} at the Department of Education has been shortlisted.
+
+Your qualifications and experience have impressed our selection committee, and we would like to move forward with the next steps of the recruitment process.
+
+What happens next:
+• We will contact you soon to schedule an interview
+• Please ensure your contact information is up-to-date
+• Prepare any relevant documents for the interview
+
+Thank you for your interest in joining DepEd. We look forward to speaking with you soon.
+
+Best regards,
+HR Department
+Department of Education`
+    },
+    'Rejected': {
+        subject: 'Application Status Update - Position at DepEd',
+        message: `Dear {applicant_name},
+
+Thank you for your interest in the position of {position} at the Department of Education.
+
+After careful consideration of all applicants, we regret to inform you that your application has not been selected for further consideration at this time.
+
+This decision does not reflect on your qualifications or potential. The competition was very strong, and we had to make difficult choices.
+
+We encourage you to:
+• Keep an eye on future openings at DepEd
+• Continue developing your skills and experience
+• Apply again for positions that match your qualifications
+
+Thank you for taking the time to apply. We wish you success in your job search.
+
+Best regards,
+HR Department
+Department of Education`
+    },
+    'Hired': {
+        subject: 'Congratulations! Job Offer from Department of Education',
+        message: `Dear {applicant_name},
+
+Congratulations! We are pleased to offer you the position of {position} at the Department of Education.
+
+After a thorough evaluation process, we were impressed with your qualifications, experience, and passion for education. We believe you will be a valuable addition to our team.
+
+Next Steps:
+• You will receive a formal offer letter via email
+• Please review and respond to the offer within the specified timeframe
+• Our HR team will contact you to discuss onboarding and start date
+• Prepare the necessary documents for employment
+
+Welcome to DepEd! We look forward to working with you to quality education for all Filipino learners.
+
+If you have any questions, please don't hesitate to contact our HR department.
+
+Best regards,
+HR Department
+Department of Education`
+    }
+};
+
+// DOM Elements
+const updateStatusBtn = document.getElementById('updateStatusBtn');
+const emailModal = document.getElementById('emailModal');
+const closeModal = document.getElementById('closeModal');
+const cancelBtn = document.getElementById('cancelBtn');
+const emailForm = document.getElementById('emailForm');
+const sendEmailBtn = document.getElementById('sendEmailBtn');
+const btnText = document.getElementById('btnText');
+
+// Form elements
+const statusSelect = document.querySelector('select[name="status"]');
+const hrNotesTextarea = document.querySelector('textarea[name="hrNotes"]');
+
+// Modal elements
+const modalStatusDisplay = document.getElementById('modalStatusDisplay');
+const modalStatus = document.getElementById('modalStatus');
+const modalHrNotes = document.getElementById('modalHrNotes');
+const emailSubject = document.getElementById('emailSubject');
+const emailMessage = document.getElementById('emailMessage');
+
+// Open modal
+updateStatusBtn.addEventListener('click', function() {
+    const selectedStatus = statusSelect.value;
+    const hrNotes = hrNotesTextarea.value;
+    
+    if (selectedStatus === '<?= $application['status'] ?>') {
+        alert('Please select a different status to update.');
+        return;
+    }
+    
+    // Set modal data
+    modalStatus.value = selectedStatus;
+    modalHrNotes.value = hrNotes;
+    modalStatusDisplay.textContent = selectedStatus;
+    
+    // Set email template
+    const template = emailTemplates[selectedStatus];
+    if (template) {
+        const applicantName = document.getElementById('modalAppName').textContent;
+        const position = '<?= htmlspecialchars($application['position']) ?>';
+        
+        emailSubject.value = template.subject;
+        emailMessage.value = template.message
+            .replace('{applicant_name}', applicantName)
+            .replace('{position}', position);
+    }
+    
+    emailModal.classList.remove('hidden');
+});
+
+// Close modal
+function closeModalFunc() {
+    emailModal.classList.add('hidden');
+}
+
+closeModal.addEventListener('click', closeModalFunc);
+cancelBtn.addEventListener('click', closeModalFunc);
+
+// Close modal on outside click
+emailModal.addEventListener('click', function(e) {
+    if (e.target === emailModal) {
+        closeModalFunc();
+    }
+});
+
+// Handle form submission
+emailForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        applicationId: document.getElementById('modalApplicationId').value,
+        status: modalStatus.value,
+        hrNotes: modalHrNotes.value,
+        emailSubject: emailSubject.value,
+        emailMessage: emailMessage.value,
+        applicantEmail: document.getElementById('modalAppEmail').textContent,
+        applicantName: document.getElementById('modalAppName').textContent
+    };
+    
+    // Show processing state
+    sendEmailBtn.disabled = true;
+    btnText.textContent = 'Processing...';
+    sendEmailBtn.classList.add('opacity-75', 'cursor-not-allowed');
+    
+    // Send AJAX request
+    fetch('../actions/ajax_update_status.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeModalFunc();
+            alert('Email sent and status updated successfully!');
+            window.location.reload();
+        } else {
+            throw new Error(data.message || 'Failed to send email');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+    })
+    .finally(() => {
+        // Reset button state
+        sendEmailBtn.disabled = false;
+        btnText.textContent = 'Confirm & Send';
+        sendEmailBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+    });
+});
+</script>
