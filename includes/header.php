@@ -69,6 +69,9 @@
                             <a href="../HR_staff/hr_dashboard.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Dashboard</a>
                             <a href="../HR_staff/create_job.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Post Job</a>
                             <a href="../HR_staff/applications.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Applications</a>
+                            <a href="../HR_staff/manage_document_types.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Document Types</a>
+                        <?php elseif ($_SESSION['user_role'] === 'Board'): ?>
+                            <a href="../Board/board_dashboard.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Board Dashboard</a>
                         <?php elseif ($_SESSION['user_role'] === 'Admin'): ?>
                             <a href="../Admin/admin_dashboard.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Dashboard</a>
                             <a href="../Admin/manage_users.php" class="nav-link primary-color hover:text-light-blue transition-colors font-medium">Users</a>
@@ -85,7 +88,7 @@
                     <div class="relative">
                         <button onclick="toggleUserDropdown()" class="flex items-center space-x-2 border border-gray-300 bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
                             <i class="fas fa-user"></i>
-                            <span><?= htmlspecialchars((isset($_SESSION['firstName']) ? $_SESSION['firstName'] : '') . ' ' . (isset($_SESSION['lastName']) ? $_SESSION['lastName'] : '')) ?></span>
+                            <span><?= htmlspecialchars((isset($_SESSION['first_name']) ? $_SESSION['first_name'] : '') . ' ' . (isset($_SESSION['last_name']) ? $_SESSION['last_name'] : '')) ?></span>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
                         
@@ -116,6 +119,9 @@
                     <a href="../HR_staff/hr_dashboard.php" class="block py-2 nav-link primary-color hover:text-light-blue">Dashboard</a>
                     <a href="../HR_staff/create_job.php" class="block py-2 nav-link primary-color hover:text-light-blue">Post Job</a>
                     <a href="../HR_staff/applications.php" class="block py-2 nav-link primary-color hover:text-light-blue">Applications</a>
+                    <a href="../HR_staff/manage_document_types.php" class="block py-2 nav-link primary-color hover:text-light-blue">Document Types</a>
+                <?php elseif ($_SESSION['user_role'] === 'Board'): ?>
+                    <a href="../Board/board_dashboard.php" class="block py-2 nav-link primary-color hover:text-light-blue">Board Dashboard</a>
                 <?php elseif ($_SESSION['user_role'] === 'Admin'): ?>
                     <a href="../Admin/admin_dashboard.php" class="block py-2 nav-link primary-color hover:text-light-blue">Dashboard</a>
                     <a href="../Admin/manage_users.php" class="block py-2 nav-link primary-color hover:text-light-blue">Users</a>

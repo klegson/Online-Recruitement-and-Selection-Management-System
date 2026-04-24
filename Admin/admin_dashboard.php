@@ -4,7 +4,7 @@ session_start();
 
 require_once '../config/db.php';
 
-
+require_once '../includes/admin_sidebar.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Admin') {
 
@@ -13,8 +13,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Admin') {
     exit();
 
 }
-
-
 
 // Fetch dashboard statistics
 
@@ -28,13 +26,9 @@ $totalJobs = $pdo->query("SELECT COUNT(*) as count FROM jobs")->fetch()['count']
 
 $totalApplications = $pdo->query("SELECT COUNT(*) as count FROM applications")->fetch()['count'];
 
-
-
 // Recent users
 
 $recentUsers = $pdo->query("SELECT firstName, lastName, email, userRole, dateJoined FROM users ORDER BY dateJoined DESC LIMIT 5")->fetchAll();
-
-
 
 // Application status breakdown
 
@@ -63,8 +57,6 @@ $jobStats = $pdo->query("
 ")->fetchAll();
 
 
-
-include('../includes/header.php');
 
 ?>
 
@@ -258,11 +250,9 @@ include('../includes/header.php');
 
                             'Pending' => 'bg-yellow-100 text-yellow-800',
 
-                            'Shortlisted' => 'bg-green-100 text-green-800',
+                            'Qualified' => 'bg-green-100 text-green-800',
 
-                            'Rejected' => 'bg-red-100 text-red-800',
-
-                            'Hired' => 'bg-purple-100 text-purple-800'
+                            'Disqualified' => 'bg-red-100 text-red-800',
 
                         ];
 
@@ -468,3 +458,5 @@ include('../includes/header.php');
 
 </div>
 
+
+<?php require_once '../includes/admin_sidebar_footer.php'; ?>
