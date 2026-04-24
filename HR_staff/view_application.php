@@ -269,7 +269,7 @@ include('../includes/header.php');
                 <i class="fas fa-flag mr-2"></i>Application Status
             </h3>
             
-            <form action="../actions/update_application_status.php" method="POST" class="space-y-4">
+            <form id="statusUpdateForm" class="space-y-4">
                 <input type="hidden" name="applicationId" value="<?= $applicationId ?>">
                 
                 <div>
@@ -277,9 +277,8 @@ include('../includes/header.php');
                     <?php
                     $statusColors = [
                         'Pending' => 'bg-yellow-100 text-yellow-800',
-                        'Shortlisted' => 'bg-green-100 text-green-800',
-                        'Rejected' => 'bg-red-100 text-red-800',
-                        'Hired' => 'bg-blue-100 text-blue-800'
+                        'Qualified' => 'bg-green-100 text-green-800',
+                        'Disqualified' => 'bg-red-100 text-red-800'
                     ];
                     $statusClass = $statusColors[$application['status']] ?? 'bg-gray-100 text-gray-800';
                     ?>
@@ -302,9 +301,8 @@ include('../includes/header.php');
                     <label class="block text-sm font-medium text-gray-700 mb-2">Update Status</label>
                     <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="Pending" <?= $application['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option>
-                        <option value="Shortlisted" <?= $application['status'] === 'Shortlisted' ? 'selected' : '' ?>>Shortlisted</option>
-                        <option value="Rejected" <?= $application['status'] === 'Rejected' ? 'selected' : '' ?>>Rejected</option>
-                        <option value="Hired" <?= $application['status'] === 'Hired' ? 'selected' : '' ?>>Hired</option>
+                        <option value="Qualified" <?= $application['status'] === 'Qualified' ? 'selected' : '' ?>>Qualified</option>
+                        <option value="Disqualified" <?= $application['status'] === 'Disqualified' ? 'selected' : '' ?>>Disqualified</option>
                     </select>
                 </div>
 
@@ -410,13 +408,32 @@ include('../includes/header.php');
 <script>
 // Email Templates
 const emailTemplates = {
-    'Shortlisted': {
-        subject: 'Application Status Update - Shortlisted for Position',
+    'Pending': {
+        subject: 'Application Status Update - Under Review',
         message: `Dear {applicant_name},
 
-Good news! Your application for the position of {position} at the Department of Education has been shortlisted.
+Your application for the position of {position} at the Department of Education is currently under review.
 
-Your qualifications and experience have impressed our selection committee, and we would like to move forward with the next steps of the recruitment process.
+Our recruitment team is carefully evaluating all applications to ensure we find the most suitable candidates for this position.
+
+What happens next:
+• Your application will be reviewed by our selection committee
+• We will update you on any changes in your application status
+• Please ensure your contact information remains current
+
+Thank you for your patience during this process. We appreciate your interest in joining DepEd.
+
+Best regards,
+HR Department
+Department of Education`
+    },
+    'Qualified': {
+        subject: 'Application Status Update - Qualified for Position',
+        message: `Dear {applicant_name},
+
+Good news! Your application for the position of {position} at the Department of Education has been marked as Qualified.
+
+Your qualifications and experience have met our requirements, and we would like to move forward with the next steps of the recruitment process.
 
 What happens next:
 • We will contact you soon to schedule an interview
@@ -429,13 +446,13 @@ Best regards,
 HR Department
 Department of Education`
     },
-    'Rejected': {
+    'Disqualified': {
         subject: 'Application Status Update - Position at DepEd',
         message: `Dear {applicant_name},
 
 Thank you for your interest in the position of {position} at the Department of Education.
 
-After careful consideration of all applicants, we regret to inform you that your application has not been selected for further consideration at this time.
+After careful consideration of all applicants, we regret to inform you that your application has been marked as Disqualified at this time.
 
 This decision does not reflect on your qualifications or potential. The competition was very strong, and we had to make difficult choices.
 
@@ -445,28 +462,6 @@ We encourage you to:
 • Apply again for positions that match your qualifications
 
 Thank you for taking the time to apply. We wish you success in your job search.
-
-Best regards,
-HR Department
-Department of Education`
-    },
-    'Hired': {
-        subject: 'Congratulations! Job Offer from Department of Education',
-        message: `Dear {applicant_name},
-
-Congratulations! We are pleased to offer you the position of {position} at the Department of Education.
-
-After a thorough evaluation process, we were impressed with your qualifications, experience, and passion for education. We believe you will be a valuable addition to our team.
-
-Next Steps:
-• You will receive a formal offer letter via email
-• Please review and respond to the offer within the specified timeframe
-• Our HR team will contact you to discuss onboarding and start date
-• Prepare the necessary documents for employment
-
-Welcome to DepEd! We look forward to working with you to quality education for all Filipino learners.
-
-If you have any questions, please don't hesitate to contact our HR department.
 
 Best regards,
 HR Department

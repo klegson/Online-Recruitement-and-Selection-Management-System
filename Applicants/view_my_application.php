@@ -231,9 +231,8 @@ include('../includes/header.php');
                         <?php
                         $statusColors = [
                             'Pending' => 'bg-yellow-100 text-yellow-800',
-                            'Shortlisted' => 'bg-green-100 text-green-800',
-                            'Rejected' => 'bg-red-100 text-red-800',
-                            'Hired' => 'bg-purple-100 text-purple-800'
+                            'Qualified' => 'bg-green-100 text-green-800',
+                            'Disqualified' => 'bg-red-100 text-red-800'
                         ];
                         $statusClass = $statusColors[$application['status']] ?? 'bg-gray-100 text-gray-800';
                         ?>

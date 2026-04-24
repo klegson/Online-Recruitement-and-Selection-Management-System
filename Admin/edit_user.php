@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once '../config/db.php';
+require_once '../includes/admin_sidebar.php';
+require_once '../includes/audit_functions.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Admin') {
     header("Location: ../login.php");
@@ -64,6 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute([$firstName, $lastName, $email, $userRole, $userId]);
                 }
                 
+                // Log the user update
+                logActivity($_SESSION['user_id'], 'Updated User', 'user', $userId, 
+                    "Updated user: {$firstName} {$lastName} ({$userRole})");
+                
                 $_SESSION['success'] = "User updated successfully!";
                 header("Location: manage_users.php");
                 exit();
@@ -73,13 +79,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
-include('../includes/header.php');
 ?>
 
-<div class="max-w-2xl mx-auto">
+<div class="max-w-2xl">
     <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
         <div class="flex items-center justify-between">
             <h1 class="text-2xl font-bold text-gray-800">Edit User</h1>
             <a href="manage_users.php" class="text-gray-600 hover:text-gray-900">
@@ -163,4 +167,4 @@ include('../includes/header.php');
     </div>
 </div>
 
-</div>
+<?php require_once '../includes/admin_sidebar_footer.php'; ?>

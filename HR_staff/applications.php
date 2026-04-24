@@ -7,22 +7,44 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'HR_Staff') {
     exit();
 }
 
-// Fetch all applications with job and user details
-$stmt = $pdo->query("
-    SELECT a.*, j.position, j.department, j.deadline,
-           u.firstName, u.lastName, u.email
-    FROM applications a
-    JOIN jobs j ON a.jobId = j.jobId
-    JOIN users u ON a.userId = u.userId
-    ORDER BY a.appliedAt DESC
-");
-$applications = $stmt->fetchAll();
+// Fetch applications with optional job filtering
+if (isset($_GET['job']) && is_numeric($_GET['job'])) {
+    $jobId = $_GET['job'];
+    $stmt = $pdo->prepare("
+        SELECT a.*, j.position, j.department, j.deadline,
+               u.firstName, u.lastName, u.email
+        FROM applications a
+        JOIN jobs j ON a.jobId = j.jobId
+        JOIN users u ON a.userId = u.userId
+        WHERE a.jobId = ?
+        ORDER BY a.appliedAt DESC
+    ");
+    $stmt->execute([$jobId]);
+    $applications = $stmt->fetchAll();
+    
+    // Get job info for header
+    $jobStmt = $pdo->prepare("SELECT * FROM jobs WHERE jobId = ?");
+    $jobStmt->execute([$jobId]);
+    $currentJob = $jobStmt->fetch();
+} else {
+    // Fetch all applications
+    $stmt = $pdo->query("
+        SELECT a.*, j.position, j.department, j.deadline,
+               u.firstName, u.lastName, u.email
+        FROM applications a
+        JOIN jobs j ON a.jobId = j.jobId
+        JOIN users u ON a.userId = u.userId
+        ORDER BY a.appliedAt DESC
+    ");
+    $applications = $stmt->fetchAll();
+    $currentJob = null;
+}
 
 // Get statistics
 $totalApplications = count($applications);
 $pendingCount = count(array_filter($applications, fn($app) => $app['status'] === 'Pending'));
-$shortlistedCount = count(array_filter($applications, fn($app) => $app['status'] === 'Shortlisted'));
-$rejectedCount = count(array_filter($applications, fn($app) => $app['status'] === 'Rejected'));
+$qualifiedCount = count(array_filter($applications, fn($app) => $app['status'] === 'Qualified'));
+$disqualifiedCount = count(array_filter($applications, fn($app) => $app['status'] === 'Disqualified'));
 
 include('../includes/header.php');
 ?>
@@ -40,8 +62,23 @@ include('../includes/header.php');
 
 <!-- Page Header -->
 <div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Applications Management</h1>
-    <p class="text-gray-600 text-sm mt-1">Review and manage job applications</p>
+    <?php if ($currentJob): ?>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Applications for <?= htmlspecialchars($currentJob['position']) ?></h1>
+                <p class="text-gray-600 text-sm mt-1">
+                    <?= htmlspecialchars($currentJob['department']) ?> • 
+                    <a href="applications.php" class="text-blue-600 hover:text-blue-800">View all applications</a>
+                </p>
+            </div>
+            <a href="hr_dashboard.php" class="text-gray-600 hover:text-gray-900">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    <?php else: ?>
+        <h1 class="text-2xl font-bold text-gray-800">Applications Management</h1>
+        <p class="text-gray-600 text-sm mt-1">Review and manage job applications</p>
+    <?php endif; ?>
 </div>
 
 <!-- Statistics Cards -->
@@ -73,8 +110,8 @@ include('../includes/header.php');
     <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-500 text-sm font-medium">Shortlisted</p>
-                <p class="text-2xl font-bold text-gray-800"><?= $shortlistedCount ?></p>
+                <p class="text-gray-500 text-sm font-medium">Qualified</p>
+                <p class="text-2xl font-bold text-gray-800"><?= $qualifiedCount ?></p>
             </div>
             <div class="bg-green-100 p-3 rounded-full">
                 <i class="fas fa-user-check text-green-600"></i>
@@ -85,14 +122,15 @@ include('../includes/header.php');
     <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-red-500">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-500 text-sm font-medium">Rejected</p>
-                <p class="text-2xl font-bold text-gray-800"><?= $rejectedCount ?></p>
+                <p class="text-gray-500 text-sm font-medium">Disqualified</p>
+                <p class="text-2xl font-bold text-gray-800"><?= $disqualifiedCount ?></p>
             </div>
             <div class="bg-red-100 p-3 rounded-full">
                 <i class="fas fa-user-times text-red-600"></i>
             </div>
         </div>
     </div>
+    
 </div>
 
 <!-- Applications Table -->
@@ -137,9 +175,8 @@ include('../includes/header.php');
                         <?php
                         $statusColors = [
                             'Pending' => 'bg-yellow-100 text-yellow-800',
-                            'Shortlisted' => 'bg-green-100 text-green-800',
-                            'Rejected' => 'bg-red-100 text-red-800',
-                            'Hired' => 'bg-blue-100 text-blue-800'
+                            'Qualified' => 'bg-green-100 text-green-800',
+                            'Disqualified' => 'bg-red-100 text-red-800'
                         ];
                         $statusClass = $statusColors[$app['status']] ?? 'bg-gray-100 text-gray-800';
                         ?>

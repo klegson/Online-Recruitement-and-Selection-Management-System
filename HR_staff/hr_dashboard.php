@@ -165,7 +165,7 @@ include('../includes/header.php');
                         <div class="flex items-center space-x-2">
                             <span class="text-sm font-medium text-gray-900"><?= $job['application_count'] ?></span>
                             <?php if ($job['pending_count'] > 0): ?>
-                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                                <span class="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
                                     <?= $job['pending_count'] ?> pending
                                 </span>
                             <?php endif; ?>
@@ -180,7 +180,7 @@ include('../includes/header.php');
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center space-x-3">
-                            <a href="view_applications.php?id=<?= $job['jobId'] ?>" class="text-blue-600 hover:text-blue-900" title="View Applications">
+                            <a href="applications.php?job=<?= $job['jobId'] ?>" class="text-blue-600 hover:text-blue-900" title="View Applications">
                                 <i class="fas fa-users"></i>
                             </a>
                             <a href="edit_job.php?id=<?= $job['jobId'] ?>" class="text-yellow-600 hover:text-yellow-900" title="Edit">

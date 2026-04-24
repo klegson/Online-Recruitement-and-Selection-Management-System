@@ -50,9 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $_SESSION['user_role'] = $user['userRole'];
 
-    $_SESSION['firstName'] = $user['firstName'];
+    $_SESSION['first_name'] = $user['firstName'];
 
-    $_SESSION['lastName'] = $user['lastName'];
+    $_SESSION['last_name'] = $user['lastName'];
 
 
 
@@ -63,6 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif ($user['userRole'] === 'HR_Staff') {
 
         header("Location: ../HR_staff/hr_dashboard.php");
+
+    } elseif ($user['userRole'] === 'Board') {
+
+        header("Location: ../Board/board_dashboard.php");
 
     } elseif ($user['userRole'] === 'Applicant') {
 

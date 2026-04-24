@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once '../config/db.php';
+require_once '../includes/admin_sidebar.php';
+require_once '../includes/audit_functions.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Admin') {
     header("Location: ../login.php");
@@ -12,9 +14,21 @@ if (isset($_GET['action'])) {
     if ($_GET['action'] === 'delete' && isset($_GET['id'])) {
         $userId = $_GET['id'];
         if ($userId != $_SESSION['user_id']) { // Prevent admin from deleting themselves
-            $stmt = $pdo->prepare("DELETE FROM users WHERE userId = ?");
-            $stmt->execute([$userId]);
-            $_SESSION['success'] = "User deleted successfully!";
+            // Get user details for audit log
+            $userStmt = $pdo->prepare("SELECT firstName, lastName, userRole FROM users WHERE userId = ?");
+            $userStmt->execute([$userId]);
+            $user = $userStmt->fetch();
+            
+            if ($user) {
+                $stmt = $pdo->prepare("DELETE FROM users WHERE userId = ?");
+                $stmt->execute([$userId]);
+                
+                // Log the deletion
+                logActivity($_SESSION['user_id'], 'Deleted User', 'user', $userId, 
+                    "Deleted user: {$user['firstName']} {$user['lastName']} ({$user['userRole']})");
+                
+                $_SESSION['success'] = "User deleted successfully!";
+            }
         } else {
             $_SESSION['error'] = "You cannot delete your own account!";
         }
@@ -39,37 +53,29 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$perPage, $offset]);
 $users = $stmt->fetchAll();
-
-include('../includes/header.php');
 ?>
 
 <!-- Success/Error Messages -->
 <?php if (isset($_SESSION['success'])): ?>
     <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-        <?= htmlspecialchars($_SESSION['success']) ?>
+        <?php echo htmlspecialchars($_SESSION['success']); ?>
         <?php unset($_SESSION['success']); ?>
     </div>
 <?php endif; ?>
 
 <?php if (isset($_SESSION['error'])): ?>
     <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-        <?= htmlspecialchars($_SESSION['error']) ?>
+        <?php echo htmlspecialchars($_SESSION['error']); ?>
         <?php unset($_SESSION['error']); ?>
     </div>
 <?php endif; ?>
 
-<div class="max-w-7xl mx-auto">
-    <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">User Management</h1>
-                <p class="text-gray-600 text-sm mt-1">Manage system users and their roles</p>
-            </div>
-            <a href="add_user.php" class="primary-bg text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                <i class="fas fa-plus mr-2"></i>Add User
-            </a>
-        </div>
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">User Management</h2>
+        <a href="add_user.php" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <i class="fas fa-plus mr-2"></i>Add New User
+        </a>
     </div>
 
     <!-- Users Table -->
@@ -179,4 +185,4 @@ function confirmDelete(userId) {
 }
 </script>
 
-</div>
+<?php require_once '../includes/admin_sidebar_footer.php'; ?>

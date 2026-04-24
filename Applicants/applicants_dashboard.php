@@ -382,7 +382,7 @@ include('../includes/header.php');
                                     <p class="text-xs text-gray-600"><?= htmlspecialchars($app['department']) ?></p>
                                     <div class="flex items-center justify-between mt-1">
                                         <span class="text-xs text-gray-500"><?= timeAgo($app['appliedAt']) ?></span>
-                                        <span class="text-xs px-2 py-1 rounded-full bg-<?= $app['status'] === 'Pending' ? 'yellow' : ($app['status'] === 'Shortlisted' ? 'green' : 'blue') ?>-100 text-<?= $app['status'] === 'Pending' ? 'yellow' : ($app['status'] === 'Shortlisted' ? 'green' : 'blue') ?>-800">
+                                        <span class="text-xs px-2 py-1 rounded-full bg-<?= $app['status'] === 'Pending' ? 'yellow' : ($app['status'] === 'Qualified' ? 'green' : 'red') ?>-100 text-<?= $app['status'] === 'Pending' ? 'yellow' : ($app['status'] === 'Qualified' ? 'green' : 'red') ?>-800">
                                             <?= htmlspecialchars($app['status']) ?>
                                         </span>
                                     </div>
