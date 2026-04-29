@@ -363,7 +363,7 @@ include('../includes/header.php');
                         <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <i class="fas fa-user text-blue-600 text-2xl"></i>
                         </div>
-                        <h3 class="font-semibold text-gray-800"><?= htmlspecialchars($_SESSION['firstName'] . ' ' . $_SESSION['lastName']) ?></h3>
+                        <h3 class="font-semibold text-gray-800"><?= htmlspecialchars(($_SESSION['first_name'] ?? '') . ' ' . ($_SESSION['last_name'] ?? '')) ?></h3>
                         <p class="text-sm text-gray-600 mb-4">Applicant</p>
                         <button class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm">
                             Edit Profile
