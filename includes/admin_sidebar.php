@@ -54,7 +54,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Admin') {
                     <i class="fas fa-user"></i>
                 </div>
                 <div>
-                    <div class="font-semibold"><?php echo htmlspecialchars($_SESSION['firstName'] . ' ' . $_SESSION['lastName']); ?></div>
+                    <div class="font-semibold"><?php echo htmlspecialchars(($_SESSION['firstName'] ?? '') . ' ' . ($_SESSION['lastName'] ?? '')); ?></div>
                     <div class="text-xs text-blue-300">Administrator</div>
                 </div>
             </div>
